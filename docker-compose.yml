@@ -1,0 +1,850 @@
+version: '3.3'
+networks:
+  overlay:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24 # /16 network takes up to 10min
+services: 
+  # NGINX webservers with NIM Agent
+  # Publish a custom nginx-demo hello page
+  nginx1:
+      networks:
+        - overlay
+      hostname: nginx-oss-1
+      build: nginx-oss-agent
+      expose:
+        - "80"
+      environment:
+        - COMPASS_PROTOCOL=grpc
+        - COMPASS_SERVER=nginx-instance-manager
+        - COMPASS_PORT=10443
+        - COMPASS_TIMEOUT=15
+  nginx2:
+      networks:
+        - overlay
+      hostname: nginx-oss-2
+      build: nginx-oss-agent
+      expose:
+        - "80" 
+      environment:
+        - COMPASS_PROTOCOL=grpc
+        - COMPASS_SERVER=nginx-instance-manager
+        - COMPASS_PORT=10443
+        - COMPASS_TIMEOUT=15
+  # NGINX Plus Load Balancer with NIM Agent       
+  nginx-plus:
+      networks:
+        - overlay
+      hostname: nginx-plus-1
+      build: nginx-plus-agent
+      volumes:
+          - ./nginx-plus-agent/etc/nginx:/etc/nginx
+      expose:
+        - "80"
+        - "8080"
+        - "443"
+      environment:
+        - COMPASS_PROTOCOL=grpc
+        - COMPASS_SERVER=nginx-instance-manager
+        - COMPASS_PORT=10443
+        - COMPASS_TIMEOUT=15
+      restart: always
+  # NGINX Instance Manager (NIM)       
+  nginx-instance-manager:
+      networks:
+        - overlay
+      hostname: nginx-instance-manager
+      build: nginx-instance-manager
+      volumes:
+          - ./nginx-instance-manager/etc/nginx/conf.d:/et8/nginx/conf.d
+      ports:
+          - 8080:8080
+          - 80:80
+          - 443:443
+          - 10443:10443
+      restart: always
+  # prometheus:
+  #   networks:
+  #       - overlay
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./prometheus/etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./prometheus/var/lib/prometheus:/var/lib/prometheus
+  #     - ./prometheus/prometheus:/prometheus
+  #     - ./prometheus/etc/prometheus:/etc/prometheus
+  #     - ./prometheus/etc/prometheus/alert.rules:/etc/prometheus/alert.rules
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--web.route-prefix=/'
+  #     - '--storage.tsdb.retention.time=200h'
+  #     - '--web.enable-lifecycle'
+  #   restart: unless-stopped
+  #   ports:
+  #     - '9090:9090'
+  # grafana:
+  #   networks:
+  #       - overlay
+  #   image: grafana:7.5.2
+  #   user: "1000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin123
+  #   volumes:
+  #     - ./grafana/var/lib/grafana:/var/lib/grafana
+  #   depends_on:
+  #     - prometheus
+  #   ports:
+  #     - '3000:3000'
+  # NGINX OSS Without NIM Agents
+  # There are a lot of versions and containers. This will take a while to pull
+  # initially...
+  # Comment some out if you like:
+  nginx-1-10:
+      hostname: nginx-1-10
+      networks:
+        - overlay
+      image: nginx:1.10
+      expose:
+        - "80" 
+  nginx1-10-0:
+      hostname: nginx-1-10-0
+      networks:
+        - overlay
+      image: nginx:1.10.0
+      expose:
+        - "80" 
+  # nginx1-10-1:
+  #     hostname: nginx-1-10-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.10.1
+  #     expose:
+  #       - "80" 
+  # nginx1-10-2:
+  #     hostname: nginx-1-10-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.10.2
+  #     expose:
+  #       - "80" 
+  # nginx1-10-3:
+  #     hostname: nginx-1-10-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.10.3
+  #     expose:
+  #       - "80" 
+  # nginx1-11:
+  #     hostname: nginx-1-11
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11
+  #     expose:
+  #       - "80" 
+  # nginx1-11-0:
+  #     hostname: nginx-1-11-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.0
+  #     expose:
+  #       - "80" 
+  # nginx1-11-1:
+  #     hostname: nginx-1-11-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.1
+  #     expose:
+  #       - "80" 
+  # nginx1-11-10:
+  #     hostname: nginx-1-11-10
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.10
+  #     expose:
+  #       - "80" 
+  # nginx1-11-12:
+  #     hostname: nginx-1-11-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.12
+  #     expose:
+  #       - "80" 
+  # nginx1-11-13:
+  #     hostname: nginx-1-11-13
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.13
+  #     expose:
+  #       - "80" 
+  # nginx1-11-3:
+  #     hostname: nginx-1-11-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.3
+  #     expose:
+  #       - "80" 
+  # nginx1-11-4:
+  #     hostname: nginx-1-11-4
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.4
+  #     expose:
+  #       - "80" 
+  # nginx1-11-5:
+  #     hostname: nginx-1-11-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.5
+  #     expose:
+  #       - "80"
+  # nginx1-11-6:
+  #     hostname: nginx-1-11-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.6
+  #     expose:
+  #       - "80" 
+  # nginx1-11-7:
+  #     hostname: nginx-1-11-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.7
+  #     expose:
+  #       - "80" 
+  # nginx1-11-8:
+  #     hostname: nginx-1-11-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.8
+  #     expose:
+  #       - "80" 
+  # nginx1-11-9:
+  #     hostname: nginx-1-11-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.11.9
+  #     expose:
+  #       - "80" 
+  # nginx1-12:
+  #     hostname: nginx-1-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.12
+  #     expose:
+  #       - "80" 
+  # nginx1-12-0:
+  #     hostname: nginx-1-12-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.12.0
+  #     expose:
+  #       - "80" 
+  # nginx1-12-1:
+  #     hostname: nginx-1-12-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.12.1
+  #     expose:
+  #       - "80" 
+  # nginx1-12-2:
+  #     hostname: nginx-1-12-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.12.2
+  #     expose:
+  #       - "80" 
+  # nginx1-13:
+  #     hostname: nginx-1-13
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13
+  #     expose:
+  #       - "80" 
+  # nginx1-13-0:
+  #     hostname: nginx-1-13-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.0
+  #     expose:
+  #       - "80" 
+  # nginx1-13-1:
+  #     hostname: nginx-1-13-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.1
+  #     expose:
+  #       - "80" 
+  # nginx1-13-10:
+  #     hostname: nginx-1-13-10
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.10
+  #     expose:
+  #       - "80" 
+  # nginx1-13-11:
+  #     hostname: nginx-1-13-11
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.11
+  #     expose:
+  #       - "80" 
+  # nginx1-13-12:
+  #     hostname: nginx-1-13-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.12
+  #     expose:
+  #       - "80" 
+  # nginx1-13-2:
+  #     hostname: nginx-1-13-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.2
+  #     expose:
+  #       - "80" 
+  # nginx1-13-3:
+  #     hostname: nginx-1-13-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.3
+  #     expose:
+  #       - "80" 
+  # nginx1-13-5:
+  #     hostname: nginx-1-13-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.5
+  #     expose:
+  #       - "80" 
+  # nginx1-13-6:
+  #     hostname: nginx-1-13-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.6
+  #     expose:
+  #       - "80" 
+  # nginx1-13-7:
+  #     hostname: nginx-1-13-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.7
+  #     expose:
+  #       - "80" 
+  # nginx1-13-8:
+  #     hostname: nginx-1-13-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.8
+  #     expose:
+  #       - "80" 
+  # nginx1-13-9:
+  #     hostname: nginx-1-13-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.13.9
+  #     expose:
+  #       - "80" 
+  # nginx1-14:
+  #     hostname: nginx-1-14
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.14
+  #     expose:
+  #       - "80" 
+  # nginx1-14-0:
+  #     hostname: nginx-1-14-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.14.0
+  #     expose:
+  #       - "80" 
+  # nginx1-14-1:
+  #     hostname: nginx-1-14-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.14.1
+  #     expose:
+  #       - "80" 
+  # nginx1-15:
+  #     hostname: nginx-1-15
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15
+  #     expose:
+  #       - "80" 
+  # nginx1-15-1:
+  #     hostname: nginx-1-15-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.1
+  #     expose:
+  #       - "80" 
+  # nginx1-15-10:
+  #     hostname: nginx-1-15-10
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.10
+  #     expose:
+  #       - "80" 
+  # nginx1-15-11:
+  #     hostname: nginx-1-15-11
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.11
+  #     expose:
+  #       - "80" 
+  # nginx1-15-12:
+  #     hostname: nginx-1-15-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.12
+  #     expose:
+  #       - "80" 
+  # nginx1-15-2:
+  #     hostname: nginx-1-15-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.2
+  #     expose:
+  #       - "80" 
+  # nginx1-15-3:
+  #     hostname: nginx-1-15-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.3
+  #     expose:
+  #       - "80" 
+  # nginx1-15-4:
+  #     hostname: nginx-1-15-4
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.4
+  #     expose:
+  #       - "80" 
+  # nginx1-15-5:
+  #     hostname: nginx-1-15-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.5
+  #     expose:
+  #       - "80" 
+  # nginx1-15-6:
+  #     hostname: nginx-1-15-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.6
+  #     expose:
+  #       - "80" 
+  # nginx1-15-7:
+  #     hostname: nginx-1-15-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.7
+  #     expose:
+  #       - "80" 
+  # nginx1-15-8:
+  #     hostname: nginx-1-15-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.7
+  #     expose:
+  #       - "80" 
+  # nginx1-15-9:
+  #     hostname: nginx-1-15-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.15.9
+  #     expose:
+  #       - "80" 
+  # nginx1-16:
+  #     hostname: nginx-1-16
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.16
+  #     expose:
+  #       - "80" 
+  # nginx1-16-0:
+  #     hostname: nginx-1-16-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.16
+  #     expose:
+  #       - "80" 
+  # nginx1-16-1:
+  #     hostname: nginx-1-16-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.16.1
+  #     expose:
+  #       - "80" 
+  # nginx1-17:
+  #     hostname: nginx-1-17
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17
+  #     expose:
+  #       - "80" 
+  # nginx1-17-0:
+  #     hostname: nginx-1-17-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.0
+  #     expose:
+  #       - "80" 
+  # nginx1-17-1:
+  #     hostname: nginx-1-17-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.1
+  #     expose:
+  #       - "80" 
+  # nginx-1-17-2:
+  #     hostname: nginx-1-17-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.2
+  #     expose:
+  #       - "80" 
+  # nginx1-17-3:
+  #     hostname: nginx-1-17-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.3
+  #     expose:
+  #       - "80" 
+  # nginx1-17-4:
+  #     hostname: nginx-1-17-4
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.4
+  #     expose:
+  #       - "80" 
+  # nginx1-17-5:
+  #     hostname: nginx-1-17-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.5
+  #     expose:
+  #       - "80" 
+  # nginx1-17-6:
+  #     hostname: nginx-1-17-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.6
+  #     expose:
+  #       - "80" 
+  # nginx1-17-7:
+  #     hostname: nginx-1-17-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.7
+  #     expose:
+  #       - "80"
+  # nginx1-17-8:
+  #     hostname: nginx-1-17-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.8
+  #     expose:
+  #       - "80"  
+  # nginx1-17-9:
+  #     hostname: nginx-1-17-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.17.9
+  #     expose:
+  #       - "80" 
+  # nginx1-18:
+  #     hostname: nginx-1-18
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.18
+  #     expose:
+  #       - "80" 
+  # nginx1-18-0:
+  #     hostname: nginx-1-18-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.18.0
+  #     expose:
+  #       - "80" 
+  # nginx1-19:
+  #     hostname: nginx-1-19
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19
+  #     expose:
+  #       - "80" 
+  # nginx1-19-1:
+  #     hostname: nginx-1-19-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.1
+  #     expose:
+  #       - "80" 
+  # nginx1-19-2:
+  #     hostname: nginx-1-19-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.2
+  #     expose:
+  #       - "80" 
+  # nginx1-19-3:
+  #     hostname: nginx-1-19-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.3
+  #     expose:
+  #       - "80" 
+  # nginx1-19-4:
+  #     hostname: nginx-1-19-4
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.4
+  #     expose:
+  #       - "80" 
+  # nginx1-19-5:
+  #     hostname: nginx-1-19-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.5
+  #     expose:
+  #       - "80" 
+  # nginx1-19-6:
+  #     hostname: nginx-1-19-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.6
+  #     expose:
+  #       - "80" 
+  # nginx1-19-7:
+  #     hostname: nginx-1-19-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.7
+  #     expose:
+  #       - "80" 
+  # nginx1-19-8:
+  #     hostname: nginx-1-19-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.19.8
+  #     expose:
+  #       - "80" 
+  # nginx-1-7-1:
+  #     hostname: nginx-1-7-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.1
+  #     expose:
+  #       - "80"
+  # nginx-1-7-10:
+  #     hostname: nginx-1-7-10
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.10
+  #     expose:
+  #       - "80" 
+  # nginx-1-7-5:
+  #     hostname: nginx-1-7-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.5
+  #     expose:
+  #       - "80"
+  # nginx-1-7-6:
+  #     hostname: nginx-1-7-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.6
+  #     expose:
+  #       - "80" 
+  # nginx-1-7-8:
+  #     hostname: nginx-1-7-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.8
+  #     expose:
+  #       - "80" 
+  # nginx-1-7-9:
+  #     hostname: nginx-1-7-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.9
+  #     expose:
+  #       - "80" 
+  # nginx-1-8:
+  #     hostname: nginx-1-78
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.8
+  #     expose:
+  #       - "80" 
+  # nginx-1-8-1:
+  #     hostname: nginx-1-8-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.8.1
+  #     expose:
+  #       - "80" 
+  # nginx-1-9:
+  #     hostname: nginx-1-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9
+  #     expose:
+  #       - "80"
+  # nginx-1-9-10:
+  #     hostname: nginx-1-9-10
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.10
+  #     expose:
+  #       - "80"
+  # nginx-1-9-11:
+  #     hostname: nginx-1-9-11
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.11
+  #     expose:
+  #       - "80"
+  # nginx-1-9-12:
+  #     hostname: nginx-1-9-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.12
+  #     expose:
+  #       - "80"
+  # nginx-1-9-14:
+  #     hostname: nginx-1-9-14
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.14
+  #     expose:
+  #       - "80"
+  # nginx-1-9-15:
+  #     hostname: nginx-1-9-15
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.15
+  #     expose:
+  #       - "80"
+  # nginx-1-9-5:
+  #     hostname: nginx-1-9-5
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.5
+  #     expose:
+  #       - "80"
+  # nginx-1-9-6:
+  #     hostname: nginx-1-9-6
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.6
+  #     expose:
+  #       - "80"
+  # nginx-1-9-7:
+  #     hostname: nginx-1-9-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.7
+  #     expose:
+  #       - "80"
+  # nginx-1-9-8:
+  #     hostname: nginx-1-9-8
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.8
+  #     expose:
+  #       - "80"
+  # nginx-1-9-9:
+  #     hostname: nginx-1-9-9
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.9
+  #     expose:
+  #       - "80"
+  # nginx-alpine:
+  #     hostname: nginx-alpine
+  #     networks:
+  #       - overlay
+  #     image: nginx:alpine
+  #     expose:
+  #       - "80"
+  # nginx-latest:
+  #     hostname: nginx-latest
+  #     networks:
+  #       - overlay
+  #     image: nginx:latest
+  #     expose:
+  #       - "80"
+  # nginx-mainline:
+  #     hostname: nginx-mainline
+  #     networks:
+  #       - overlay
+  #     image: nginx:mainline
+  #     expose:
+  #       - "80"
+  # nginx-stable:
+  #     hostname: nginx-stable
+  #     networks:
+  #       - overlay
+  #     image: nginx:stable
+  #     expose:
+  #       - "80"
+  # nginx-1-7:
+  #     hostname: nginx-1-7
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7
+  #     expose:
+  #       - "80"
+  # nginx-1-7-11:
+  #     hostname: nginx-1-7-11
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.11
+  #     expose:
+  #       - "80"
+  # nginx-1-7-12:
+  #     hostname: nginx-1-7-12
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.7.12
+  #     expose:
+  #       - "80"
+  # nginx-1-9-0:
+  #     hostname: nginx-1-9-0
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.0
+  #     expose:
+  #       - "80"
+  # nginx-1-9-1:
+  #     hostname: nginx-1-9-1
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.1
+  #     expose:
+  #       - "80"
+  # nginx-1-9-2:
+  #     hostname: nginx-1-9-2
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.2
+  #     expose:
+  #       - "80"
+  # nginx-1-9-3:
+  #     hostname: nginx-1-9-3
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.3
+  #     expose:
+  #       - "80"
+  # nginx-1-9-4:
+  #     hostname: nginx-1-9-4
+  #     networks:
+  #       - overlay
+  #     image: nginx:1.9.4
+  #     expose:
+  #       - "80"
