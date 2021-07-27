@@ -56,7 +56,7 @@ services:
       hostname: nginx-instance-manager
       build: nginx-instance-manager
       volumes:
-          - ./nginx-instance-manager/etc/nginx/conf.d:/et8/nginx/conf.d
+          - ./nginx-instance-manager/etc/nginx/conf.d:/etc/nginx/conf.d
       ports:
           - 8080:8080
           - 80:80
