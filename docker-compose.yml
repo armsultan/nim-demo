@@ -39,10 +39,10 @@ services:
       build: nginx-plus-agent
       volumes:
           - ./nginx-plus-agent/etc/nginx:/etc/nginx
-      expose:
-        - "80"
-        - "8080"
-        - "443"
+      ports:
+        - "80:80"
+        - "8080:8080"
+        - "443:443"
       environment:
         - COMPASS_PROTOCOL=grpc
         - COMPASS_SERVER=nginx-instance-manager
@@ -58,9 +58,9 @@ services:
       volumes:
           - ./nginx-instance-manager/etc/nginx/conf.d:/etc/nginx/conf.d
       ports:
-          - 8080:8080
-          - 80:80
-          - 443:443
+          - 9090:8080
+          - 9080:80
+          - 9443:443
           - 10443:10443
       restart: always
   # prometheus:
