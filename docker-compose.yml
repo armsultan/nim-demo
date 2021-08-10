@@ -15,10 +15,10 @@ services:
       expose:
         - "80"
       environment:
-        - COMPASS_PROTOCOL=grpc
+        - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
         - COMPASS_PORT=10443
-        - COMPASS_TIMEOUT=15
+        - COMPASS_TIMEOUT=30
   nginx2:
       networks:
         - overlay
@@ -27,10 +27,10 @@ services:
       expose:
         - "80" 
       environment:
-        - COMPASS_PROTOCOL=grpc
+        - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
         - COMPASS_PORT=10443
-        - COMPASS_TIMEOUT=15
+        - COMPASS_TIMEOUT=30
   # NGINX Plus Load Balancer with NIM Agent       
   nginx-plus:
       networks:
@@ -44,10 +44,10 @@ services:
         - "8080:8080"
         - "443:443"
       environment:
-        - COMPASS_PROTOCOL=grpc
+        - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
         - COMPASS_PORT=10443
-        - COMPASS_TIMEOUT=15
+        - COMPASS_TIMEOUT=30
       restart: always
   # NGINX Instance Manager (NIM)       
   nginx-instance-manager:

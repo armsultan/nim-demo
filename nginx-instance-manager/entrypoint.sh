@@ -1,6 +1,14 @@
 #!/bin/bash
-nginx &
-nginx-manager &
-# gotta put the previous two in background or it won't sleep
-sleep 30
-nginx-agent
+# turn on bash's job control
+set -m
+
+# Start the primary process and put it in the background
+/usr/sbin/nginx -g 'daemon off;' &
+# start nim
+/usr/sbin/nginx-manager &
+# Start the helper process
+sleep 45
+/usr/sbin/nginx-agent
+# now we bring the primary process back into the foreground
+# and leave it there
+fg %1
