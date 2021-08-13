@@ -17,7 +17,7 @@ services:
       environment:
         - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
-        - COMPASS_PORT=10443
+        - COMPASS_PORT=80
         - COMPASS_TIMEOUT=30
   nginx2:
       networks:
@@ -29,7 +29,7 @@ services:
       environment:
         - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
-        - COMPASS_PORT=10443
+        - COMPASS_PORT=80
         - COMPASS_TIMEOUT=30
   # NGINX Plus Load Balancer with NIM Agent       
   nginx-plus:
@@ -46,7 +46,7 @@ services:
       environment:
         - COMPASS_PROTOCOL=http
         - COMPASS_SERVER=nginx-instance-manager
-        - COMPASS_PORT=10443
+        - COMPASS_PORT=80
         - COMPASS_TIMEOUT=30
       restart: always
   # NGINX Instance Manager (NIM)       
