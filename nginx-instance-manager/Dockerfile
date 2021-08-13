@@ -12,6 +12,20 @@ ENV PKG_RELEASE   1~focal
 # https://docs.nginx.com/nginx-instance-manager/releases/
 ENV NIM_VERSION 0.9.1-3047962     
 
+# Set Instance Manager Server and Port and timeout for wait-for-it script
+# (entrypoint.sh)
+ARG COMPASS_PROTOCOL
+ENV COMPASS_PROTOCOL=${COMPASS_PROTOCOL:-http}
+ARG COMPASS_SYSTEMD
+# Change to /lib/systemd/systemd for ubuntu
+ENV COMPASS_SYSTEMD=${COMPASS_SYSTEMD:-/usr/sbin/init}
+ARG COMPASS_SERVER
+ENV COMPASS_SERVER=${COMPASS_SERVER:-nginx-manager.example.com}
+ARG COMPASS_PORT
+ENV COMPASS_PORT=${COMPASS_PORT:-11000}
+ARG COMPASS_TIMEOUT
+ENV COMPASS_TIMEOUT=${COMPASS_TIMEOUT:-15}
+
 ## Install NIM and Nginx Plus
 # Download certificate and key from the customer portal https://account.f5.com/myf5
 # and copy to the build context and set correct permissions
