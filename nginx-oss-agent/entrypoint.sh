@@ -8,7 +8,7 @@
 
 # turn on job control
 set -m
-# Check nginx-manager before starting nginx-agent
+# Poll NIM, looping through a curl until it returns a 200 or times out before starting agent
 declare -r HOST="${COMPASS_PROTOCOL}://${COMPASS_SERVER}:${COMPASS_PORT}"
 wait-for-url() {
     echo "Testing $1"
@@ -21,12 +21,9 @@ wait-for-url() {
 }
 wait-for-url "${HOST}"
 echo "$HOSTNAME"
-# Start the primary process and put it in the background
+# Start nginx and put it in the background
 /usr/sbin/nginx &
-# Start the helper process
+# Start the agent
 /usr/sbin/nginx-agent
-# the my_helper_process might need to know how to wait on the
-# primary process to start before it does its work and returns  
-# now we bring the primary process back into the foreground
-# and leave it there
+# Bring nginx into foreground and leave it there
 fg %1

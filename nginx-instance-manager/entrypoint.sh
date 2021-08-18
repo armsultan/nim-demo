@@ -2,10 +2,12 @@
 # turn on bash's job control
 set -m
 
-# Start the primary process and put it in the background
+# Start nginx and put it in the background
 /usr/sbin/nginx -g 'daemon off;' &
-# start nim
+# Start NIM before before starting to poll it
 /usr/sbin/nginx-manager &
+
+# Poll NIM, looping through a curl until it returns a 200 or times out before starting agent
 declare -r HOST="${COMPASS_PROTOCOL}://${COMPASS_SERVER}:${COMPASS_PORT}"
 wait-for-url() {
     echo "Testing $1"
@@ -18,8 +20,7 @@ wait-for-url() {
 }
 wait-for-url "${HOST}"
 echo "$HOSTNAME"
-# Start the helper process
+# Start the agent
 /usr/sbin/nginx-agent
-# now we bring the primary process back into the foreground
-# and leave it there
+# Bring nginx into foreground and leave it there
 fg %1
