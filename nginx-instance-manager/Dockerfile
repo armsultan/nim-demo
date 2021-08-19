@@ -6,11 +6,25 @@ LABEL maintainer="armand@f5.com"
 # Uncomment this block and the versioned NGINX Packages in the main RUN
 # instruction to install a specific release
 # https://docs.nginx.com/nginx/releases/
-ENV NGINX_VERSION 23         
+ENV NGINX_VERSION 24         
 # https://plus-pkgs.nginx.com
 ENV PKG_RELEASE   1~focal   
 # https://docs.nginx.com/nginx-instance-manager/releases/
 ENV NIM_VERSION 0.9.1-3047962     
+
+# Set Instance Manager Server and Port and timeout for wait-for-it script
+# (entrypoint.sh)
+ARG COMPASS_PROTOCOL
+ENV COMPASS_PROTOCOL=${COMPASS_PROTOCOL:-http}
+ARG COMPASS_SYSTEMD
+# Change to /lib/systemd/systemd for ubuntu
+ENV COMPASS_SYSTEMD=${COMPASS_SYSTEMD:-/usr/sbin/init}
+ARG COMPASS_SERVER
+ENV COMPASS_SERVER=${COMPASS_SERVER:-nginx-manager.example.com}
+ARG COMPASS_PORT
+ENV COMPASS_PORT=${COMPASS_PORT:-11000}
+ARG COMPASS_TIMEOUT
+ENV COMPASS_TIMEOUT=${COMPASS_TIMEOUT:-15}
 
 ## Install NIM and Nginx Plus
 # Download certificate and key from the customer portal https://account.f5.com/myf5
@@ -43,7 +57,7 @@ RUN set -x \
     && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 1001 nginx \
     # Install prerequisite packages, vim for editing, then Install NGINX Plus
     && apt-get update && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends apt-transport-https lsb-release ca-certificates wget dnsutils gnupg vim-tiny apt-utils jq \
+    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends apt-transport-https lsb-release ca-certificates curl wget dnsutils gnupg vim-tiny apt-utils jq \
     # Signing key for all NGINX things
     && wget http://nginx.org/keys/nginx_signing.key && apt-key add nginx_signing.key \
     # Install NGINX Plus from repo (https://cs.nginx.com/repo_setup)
@@ -55,8 +69,8 @@ RUN set -x \
     # List available versions: 
     && apt-cache policy nginx-plus \
     ## Uncomment one:
-    # && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-plus \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-plus=${NGINX_VERSION}-${PKG_RELEASE} \
+    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-plus \
+    # && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-plus=${NGINX_VERSION}-${PKG_RELEASE} \
     # Install NIM
     && printf "deb https://pkgs.nginx.com/instance-manager/debian stable nginx-plus\n" | tee /etc/apt/sources.list.d/instance-manager.list \
     && wget -q -O /etc/apt/apt.conf.d/90pkgs-nginx https://cs.nginx.com/static/files/90pkgs-nginx \
@@ -66,9 +80,10 @@ RUN set -x \
     # List available versions: 
     && apt-cache policy nginx-manager \
     ## Uncomment one:
-    #&& DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-manager \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-manager=${NIM_VERSION} \
-    #    
+    && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-manager \
+    # && DEBIAN_FRONTEND=noninteractive apt-get -qq -y install --no-install-recommends nginx-manager=${NIM_VERSION} \
+    # add nginx agent
+    nginx-agent \    
     # Remove default nginx config
     && rm /etc/nginx/conf.d/default.conf \
     # Optional: Create cache folder and set permissions for proxy caching
@@ -77,6 +92,9 @@ RUN set -x \
     # Optional: Create State file folder and set permissions
     && mkdir -p /var/lib/nginx/state \
     && chown -R nginx /var/lib/nginx/state \
+    # Make sure Nginx-agent conf folder exists
+    && mkdir -p /etc/nginx-agent \
+    && chown -R nginx /etc/nginx-agent \
     # Set permissions
     && chown -R nginx:nginx /etc/nginx \
     # Forward request and error logs to docker log collector
@@ -98,6 +116,8 @@ RUN set -x \
 COPY etc/nginx/conf.d  /etc/nginx/conf.d
 # NIM config files
 COPY etc/nginx-manager/nginx-manager.conf /etc/nginx-manager/nginx-manager.conf
+# nginx-agent config file
+ADD etc/nginx-agent/nginx-agent.conf /etc/nginx-agent/nginx-agent.conf
 
 # EXPOSE NGINX Plus ports, HTTP 80, HTTPS 443, Nginx status page 8080, GRPC 10443 
 # and Prometheus Metrics on 11000

@@ -163,17 +163,24 @@ cd nim-demo
 ls nginx-plus-agent/etc/ssl/nginx/nginx-*
 nginx-repo.crt              nginx-repo.key
 
-# Make sure NIM repo key and certificate exist here 
+# And the same key/cert exist here for the OSS agent
+ls nginx-oss-agent/etc/ssl/nginx/nginx-*
+nginx-repo.crt              nginx-repo.key
+
+# And the same key/cert here for the NIM agent
 ls nginx-instance-manager/etc/ssl/nginx/nginx-*
 nginx-repo.crt              nginx-repo.key
 
-# And Make sure NIM license key exist here
+# Finally, make sure NIM license key (from my.f5.com) exists here
 ls nginx-instance-manager/etc/nginx-manager/*.lic
 nginx-manager.lic
 
-# Downloaded docker images and build
+# Download docker images and build
 docker-compose pull
 docker-compose build --no-cache
+
+# [Development Only] Build a single service to cut down on build time
+docker-compose build --no-cache [SERVICE]
 ```
 
 -----------------------
